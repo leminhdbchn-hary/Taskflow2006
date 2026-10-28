@@ -4,11 +4,13 @@ Taskflow - quản lý công việc theo ngày. Xây dựng bằng React + Vite.
 
 ## Tính năng
 
-- Xem và thêm công việc theo từng ngày (mức ưu tiên, giờ hạn, ghi chú)
-- Đánh dấu hoàn thành, xóa công việc
-- Chuyển các việc chưa xong từ ngày cũ sang ngày đang xem
-- Xuất / nhập dữ liệu dạng JSON (`taskflow-backup-YYYY-MM-DD.json`)
-- Dữ liệu chỉ lưu trong `localStorage` của trình duyệt, không nằm trong repo; dùng "Nhập JSON" để khôi phục từ file sao lưu
+- **Hôm nay**: công việc theo ngày (ưu tiên, giờ hạn, ghi chú), dải tuần, sửa/xóa (có hoàn tác), chuyển việc tồn đọng sang ngày hiện tại
+- **Dashboard**: tiến độ hôm nay/tuần/tháng, biểu đồ 14 ngày, cơ cấu ưu tiên, việc tồn đọng lâu nhất, việc lặp lại nhiều nhất
+- **Báo cáo** theo tuần, tháng, năm: thống kê, biểu đồ, danh sách việc đã/chưa hoàn thành, sao chép báo cáo dạng văn bản, in / lưu PDF
+- Giao diện sáng/tối, tối ưu cho máy tính, có bản thu gọn cho điện thoại
+- Minh họa 3D (banner, trạng thái trống, hoàn thành) trong `src/assets/*.webp`, nạp qua `import` nên tự theo `base` của Vite (`/Taskflow2006/`)
+- Xuất / nhập dữ liệu JSON (`taskflow-backup-YYYY-MM-DD.json`)
+- Dữ liệu chỉ lưu trong `localStorage` của trình duyệt, không nằm trong repo
 
 ## Bắt đầu
 
@@ -21,9 +23,10 @@ npm run lint     # kiểm tra mã nguồn
 
 ## Cấu trúc
 
-- `src/App.jsx` – state chính, chuyển việc tồn đọng, xuất/nhập
-- `src/lib/tasks.js` – lưu trữ, sắp xếp, tiện ích ngày
-- `src/components/` – `DateBar`, `TaskForm`, `TaskList`
+- `src/App.jsx` – state chính, điều hướng, xuất/nhập
+- `src/views/` – `TodayView`, `DashboardView`, `ReportView`
+- `src/components/` – `Sidebar`, `TaskForm`, `TaskList`, `Charts`
+- `src/lib/tasks.js` – lưu trữ, sắp xếp, tiện ích ngày; `src/lib/stats.js` – thống kê và báo cáo
 
 ## Triển khai
 

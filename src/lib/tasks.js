@@ -57,13 +57,6 @@ export function newTask({ name, pri = 'med', dueTime = '', note = '' }) {
   return { id: Date.now(), name, pri, done: false, status: 'todo', dueTime, note, carriedFrom: null }
 }
 
-// Các việc chưa xong ở những ngày trước `day`.
-export function findOverdue(data, day) {
-  return Object.entries(data)
-    .filter(([key]) => key < day)
-    .flatMap(([key, tasks]) => tasks.filter((t) => !t.done).map((t) => ({ ...t, from: key })))
-}
-
 export function exportData(data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -82,3 +75,13 @@ export function isValidBackup(value) {
     Object.values(value).every((tasks) => Array.isArray(tasks))
   )
 }
+
+export const todayKey = () => toKey(new Date())
+
+const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+export function weekdayShort(key) {
+  return WEEKDAYS[new Date(`${key}T00:00:00`).getDay()]
+}
+
+// dd/mm từ khóa YYYY-MM-DD
+export const shortDate = (key) => `${key.slice(8)}/${key.slice(5, 7)}`

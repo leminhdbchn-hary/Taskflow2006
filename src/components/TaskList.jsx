@@ -1,31 +1,101 @@
-import { PRIORITIES } from '../lib/tasks.js'
+import { useState } from 'react'
+import emptyUrl from '../assets/taskflow-empty.webp'
+import { PRIORITIES, shortDate } from '../lib/tasks.js'
 
-export default function TaskList({ tasks, onToggle, onUpdate, onRemove }) {
-  if (tasks.length === 0) return <p className="empty">Chưa có công việc nào trong ngày này.</p>
+function TaskItem({ task, onToggle, onUpdate, onRemove }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(task)
 
+  const save = () => {
+    const name = draft.name.trim()
+    if (name) onUpdate(task.id, { name, pri: draft.pri, dueTime: draft.dueTime })
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <li className={`task pri-${task.pri} editing`}>
+        <input
+          autoFocus
+          className="name-input"
+          value={draft.name}
+          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') save()
+            if (e.key === 'Escape') setEditing(false)
+          }}
+          aria-label="Tên công việc"
+        />
+        <select value={draft.pri} onChange={(e) => setDraft({ ...draft, pri: e.target.value })} aria-label="Mức ưu tiên">
+          {Object.entries(PRIORITIES).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <input type="time" value={draft.dueTime} onChange={(e) => setDraft({ ...draft, dueTime: e.target.value })} aria-label="Giờ hạn" />
+        <button className="primary" onClick={save}>
+          Lưu
+        </button>
+        <button className="ghost" onClick={() => setEditing(false)}>
+          Hủy
+        </button>
+      </li>
+    )
+  }
+
+  return (
+    <li className={`task pri-${task.pri} ${task.done ? 'done' : ''}`}>
+      <input
+        type="checkbox"
+        className="check"
+        checked={task.done}
+        onChange={() => onToggle(task)}
+        aria-label={`Hoàn thành: ${task.name}`}
+      />
+      <div className="task-body">
+        <div className="task-title">
+          <span className="name">{task.name}</span>
+          <span className={`chip chip-${task.pri}`}>{PRIORITIES[task.pri]}</span>
+          {task.dueTime && <span className="chip chip-time">⏰ {task.dueTime}</span>}
+          {task.carriedFrom && <span className="chip chip-carried">↪ từ {shortDate(task.carriedFrom)}</span>}
+        </div>
+        <input
+          className="note"
+          value={task.note}
+          placeholder="Thêm ghi chú…"
+          onChange={(e) => onUpdate(task.id, { note: e.target.value })}
+          aria-label="Ghi chú"
+        />
+      </div>
+      <div className="task-actions">
+        <button className="icon" title="Sửa" aria-label="Sửa công việc" onClick={() => { setDraft(task); setEditing(true) }}>
+          ✎
+        </button>
+        <button className="icon danger" title="Xóa" aria-label="Xóa công việc" onClick={() => onRemove(task)}>
+          ✕
+        </button>
+      </div>
+    </li>
+  )
+}
+
+export default function TaskList({ tasks, ...handlers }) {
+  if (tasks.length === 0) {
+    return (
+      <div className="state-card card is-empty">
+        <img src={emptyUrl} alt="" width="160" height="133" />
+        <div>
+          <strong>Bắt đầu ngày mới bằng một việc nhỏ.</strong>
+          <span>Nhập tên việc ở ô phía trên rồi nhấn Enter.</span>
+        </div>
+      </div>
+    )
+  }
   return (
     <ul className="task-list">
       {tasks.map((task) => (
-        <li key={task.id} className={task.done ? 'done' : ''}>
-          <div className="row">
-            <label>
-              <input type="checkbox" checked={task.done} onChange={() => onToggle(task)} />
-              <span className="name">{task.name}</span>
-            </label>
-            <span className={`pri pri-${task.pri}`}>{PRIORITIES[task.pri]}</span>
-            {task.dueTime && <span className="due">⏰ {task.dueTime}</span>}
-            <button className="icon" aria-label="Xóa" onClick={() => onRemove(task.id)}>
-              ✕
-            </button>
-          </div>
-          {task.carriedFrom && <small className="carried">Chuyển từ {task.carriedFrom}</small>}
-          <input
-            className="note"
-            value={task.note}
-            placeholder="Ghi chú..."
-            onChange={(e) => onUpdate(task.id, { note: e.target.value })}
-          />
-        </li>
+        <TaskItem key={task.id} task={task} {...handlers} />
       ))}
     </ul>
   )
