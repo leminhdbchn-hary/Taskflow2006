@@ -2,6 +2,12 @@
 const STORE = 'fake.cloud'
 const USER = 'fake.user'
 
+// Giống Firestore: từ chối giá trị undefined ở bất kỳ đâu trong dữ liệu.
+function assertNoUndefined(value, path = 'tasks') {
+  if (value === undefined) throw new Error(`Unsupported field value: undefined (at ${path})`)
+  if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) assertNoUndefined(v, `${path}.${k}`)
+}
+
 const read = () => JSON.parse(localStorage.getItem(STORE) ?? '{}')
 const write = (store) => localStorage.setItem(STORE, JSON.stringify(store))
 
@@ -44,6 +50,7 @@ export function createCloud() {
       return () => subs.delete(sub)
     },
     async writeDay(uid, key, tasks) {
+      assertNoUndefined(tasks)
       log.writes.push(key)
       await new Promise((r) => setTimeout(r, 30))
       const store = read()

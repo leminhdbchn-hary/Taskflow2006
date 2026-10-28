@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import emptyUrl from '../assets/taskflow-empty.webp'
-import { PRIORITIES, deadlineInfo, shortDate } from '../lib/tasks.js'
+import { scheduleInfo } from '../lib/reminders.js'
+import { PRIORITIES, deadlineInfo, fullDate, shortDate, todayKey } from '../lib/tasks.js'
 
-function TaskItem({ task, onToggle, onUpdate, onRemove }) {
+function TaskItem({ task, day, onToggle, onUpdate, onRemove }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(task)
   const deadline = deadlineInfo(task)
+  const sched = scheduleInfo(task, day, todayKey())
+  const tracking = typeof task.progress === 'number'
 
   const save = () => {
     const name = draft.name.trim()
@@ -60,13 +63,39 @@ function TaskItem({ task, onToggle, onUpdate, onRemove }) {
           <span className="name">{task.name}</span>
           <span className={`chip chip-${task.pri}`}>{PRIORITIES[task.pri]}</span>
           {deadline && (
-            <span className={`chip chip-dl-${deadline.tone}`} title={`Deadline ${task.dueDate.split('-').reverse().join('/')}`}>
+            <span className={`chip chip-dl-${deadline.tone}`} title={`Deadline ${fullDate(task.dueDate)}`}>
               📅 {deadline.label}
+            </span>
+          )}
+          {sched?.behind && (
+            <span className="chip chip-dl-soon" title={`Kế hoạch ~${sched.expected}% (đã qua ${sched.elapsed}/${sched.total} ngày)`}>
+              Chậm tiến độ
             </span>
           )}
           {task.dueTime && <span className="chip chip-time">⏰ {task.dueTime}</span>}
           {task.carriedFrom && <span className="chip chip-carried">↪ từ {shortDate(task.carriedFrom)}</span>}
         </div>
+        {!task.done && tracking && (
+          <div className="progress-row">
+            <label>
+              Tiến độ
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="5"
+                value={task.progress}
+                aria-valuetext={`${task.progress}%`}
+                onChange={(e) => {
+                  const progress = Number(e.target.value)
+                  onUpdate(task.id, progress === 100 ? { progress, done: true, status: 'done' } : { progress })
+                }}
+              />
+            </label>
+            <span className="pct">{task.progress}%</span>
+            {sched && <span className="muted small">kế hoạch ~{sched.expected}%</span>}
+          </div>
+        )}
         <input
           className="note"
           value={task.note}
@@ -76,6 +105,11 @@ function TaskItem({ task, onToggle, onUpdate, onRemove }) {
         />
       </div>
       <div className="task-actions">
+        {!task.done && !tracking && (
+          <button className="icon text" title="Theo dõi tiến độ (%)" aria-label="Theo dõi tiến độ" onClick={() => onUpdate(task.id, { progress: 0 })}>
+            % tiến độ
+          </button>
+        )}
         <button className="icon" title="Sửa" aria-label="Sửa công việc" onClick={() => { setDraft(task); setEditing(true) }}>
           ✎
         </button>
@@ -87,7 +121,7 @@ function TaskItem({ task, onToggle, onUpdate, onRemove }) {
   )
 }
 
-export default function TaskList({ tasks, ...handlers }) {
+export default function TaskList({ tasks, day, ...handlers }) {
   if (tasks.length === 0) {
     return (
       <div className="state-card card is-empty">
@@ -102,7 +136,7 @@ export default function TaskList({ tasks, ...handlers }) {
   return (
     <ul className="task-list">
       {tasks.map((task) => (
-        <TaskItem key={task.id} task={task} {...handlers} />
+        <TaskItem key={task.id} task={task} day={day} {...handlers} />
       ))}
     </ul>
   )

@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+import RemindersCard from '../components/RemindersCard.jsx'
 import Hero from '../components/Hero.jsx'
 import TaskForm from '../components/TaskForm.jsx'
 import TaskList from '../components/TaskList.jsx'
@@ -5,9 +7,11 @@ import { Ring } from '../components/Charts.jsx'
 import successUrl from '../assets/taskflow-success.webp'
 import { formatDay, shiftDay, shortDate, sortTasks, todayKey, weekdayShort } from '../lib/tasks.js'
 import { overdueTasks, periodRange, summarize } from '../lib/stats.js'
+import { buildIndex } from '../lib/suggest.js'
 
-export default function TodayView({ data, day, onDay, actions }) {
+export default function TodayView({ data, day, onDay, actions, reminders }) {
   const tasks = data[day] ?? []
+  const index = useMemo(() => buildIndex(data), [data])
   const stats = summarize(tasks)
   const overdue = overdueTasks(data, day)
   const week = periodRange('week', day)
@@ -49,7 +53,7 @@ export default function TodayView({ data, day, onDay, actions }) {
 
       <div className="two-col">
         <section className="col-main">
-          <TaskForm onAdd={actions.add} />
+          <TaskForm onAdd={actions.add} index={index} />
           {allDone && (
             <div className="state-card card success" role="status">
               <img src={successUrl} alt="" width="140" height="124" />
@@ -59,10 +63,12 @@ export default function TodayView({ data, day, onDay, actions }) {
               </div>
             </div>
           )}
-          <TaskList tasks={sortTasks(tasks)} onToggle={actions.toggle} onUpdate={actions.update} onRemove={actions.remove} />
+          <TaskList tasks={sortTasks(tasks)} day={day} onToggle={actions.toggle} onUpdate={actions.update} onRemove={actions.remove} />
         </section>
 
         <aside className="col-side">
+          <RemindersCard items={reminders.items} onOpenDay={onDay} settings={reminders.settings} setSettings={reminders.setSettings} />
+
           <div className="card progress-card">
             <Ring value={stats.rate} label={`${stats.rate}%`} sub="hoàn thành" />
             <ul className="mini-stats">

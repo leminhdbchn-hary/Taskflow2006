@@ -6,6 +6,7 @@ import ReportView from './views/ReportView.jsx'
 import { exportData, isValidBackup, loadData, newTask, saveData, todayKey } from './lib/tasks.js'
 import { overdueTasks } from './lib/stats.js'
 import { useCloud } from './lib/useCloud.js'
+import { useReminders } from './lib/useReminders.js'
 
 const VIEWS = ['today', 'dashboard', 'report']
 const readView = () => {
@@ -28,6 +29,7 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const notify = useCallback((text) => setToast({ text }), [])
   const cloud = useCloud({ data, setData, notify })
+  const reminders = useReminders({ data, notify })
 
   useEffect(() => saveData(data), [data])
   useEffect(() => {
@@ -62,8 +64,23 @@ export default function App() {
 
   const actions = {
     add: (fields) => updateDay(day, (list) => [...list, newTask(fields)]),
-    update: (id, patch) => updateDay(day, (list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t))),
-    toggle: (task) => actions.update(task.id, { done: !task.done, status: task.done ? 'todo' : 'done' }),
+    update: (id, patch) =>
+      updateDay(day, (list) =>
+        list.map((t) => {
+          if (t.id !== id) return t
+          const next = { ...t, ...patch }
+          for (const key of Object.keys(next)) if (next[key] === undefined) delete next[key] // Firestore không nhận undefined
+          return next
+        }),
+      ),
+    // Hoàn thành thì tiến độ (nếu đang theo dõi) về 100%; bỏ hoàn thành thì thôi theo dõi tiến độ.
+    toggle: (task) =>
+      actions.update(task.id, {
+        done: !task.done,
+        status: task.done ? 'todo' : 'done',
+        ...(!task.done && typeof task.progress === 'number' ? { progress: 100 } : {}),
+        ...(task.done && task.progress === 100 ? { progress: undefined } : {}),
+      }),
     remove: (task) => {
       updateDay(day, (list) => list.filter((t) => t.id !== task.id))
       setToast({ text: `Đã xóa “${task.name}”`, undo: () => updateDay(day, (list) => [...list, task]) })
@@ -110,10 +127,11 @@ export default function App() {
         onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         cloud={cloud}
         onSignOut={signOut}
+        badges={{ today: reminders.urgent }}
       />
       <main className="content">
-        {view === 'today' && <TodayView data={data} day={day} onDay={setDay} actions={actions} />}
-        {view === 'dashboard' && <DashboardView data={data} onDay={openDay} />}
+        {view === 'today' && <TodayView data={data} day={day} onDay={setDay} actions={actions} reminders={reminders} />}
+        {view === 'dashboard' && <DashboardView data={data} onDay={openDay} reminders={reminders} />}
         {view === 'report' && <ReportView data={data} />}
       </main>
       {toast && (

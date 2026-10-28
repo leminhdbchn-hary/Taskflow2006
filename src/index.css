@@ -444,6 +444,7 @@ button.icon.danger:hover {
 
 .col-main,
 .col-side {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -465,7 +466,7 @@ button.icon.danger:hover {
   min-width: 0;
 }
 
-.task-form .name-input {
+.task-form .combo {
   grid-column: 1 / 4;
 }
 
@@ -925,6 +926,7 @@ button.icon.danger:hover {
   background: var(--text);
   color: var(--bg);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  max-width: calc(100vw - 32px);
   transform: translateX(-50%);
 }
 
@@ -1034,6 +1036,193 @@ button.icon.danger:hover {
 
 .acc-status.st-error i {
   background: var(--pri-high);
+}
+
+.combo {
+  position: relative;
+}
+
+.combo .name-input {
+  width: 100%;
+}
+
+.suggest {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 290px;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(32, 35, 45, 0.16);
+}
+
+.suggest li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.suggest li.active,
+.suggest li:hover {
+  background: var(--accent-soft);
+}
+
+.suggest li.suggest-head {
+  padding: 4px 10px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: default;
+}
+
+.suggest li.suggest-head:hover {
+  background: none;
+}
+
+.s-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.progress-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-row input[type='range'] {
+  width: 170px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--accent);
+}
+
+.pct {
+  min-width: 3ch;
+  color: var(--text);
+  font-weight: 600;
+}
+
+button.icon.text {
+  width: auto;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.badge {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--pri-high);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.rem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--pri-low);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.rem p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.rem-overdue {
+  border-left-color: var(--pri-high);
+}
+
+.rem-today {
+  border-left-color: var(--pri-high);
+}
+
+.rem-soon {
+  border-left-color: var(--pri-med);
+}
+
+.rem-settings {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.rem-settings summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.check-line,
+.field-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.field-line select {
+  margin-left: auto;
+}
+
+.rem-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.small-btn {
+  height: 32px;
+  margin-top: 10px;
 }
 
 /* ---------- Hero & states ---------- */
@@ -1175,7 +1364,7 @@ button.icon.danger:hover {
 @media (max-width: 1100px) {
   .two-col,
   .grid-2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .col-side {
@@ -1395,7 +1584,7 @@ button.icon.danger:hover {
     min-width: 0;
   }
 
-  .task-form .name-input {
+  .task-form .combo {
     grid-column: 1 / -1;
   }
 
