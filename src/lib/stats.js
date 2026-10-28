@@ -1,4 +1,4 @@
-import { shiftDay, shortDate, toKey, weekdayShort } from './tasks.js'
+import { fullDate, shiftDay, shortDate, toKey, weekdayShort } from './tasks.js'
 
 const parse = (key) => new Date(`${key}T00:00:00`)
 
@@ -98,14 +98,6 @@ export function overdueTasks(data, day) {
     .sort((a, b) => b.age - a.age)
 }
 
-// Việc chưa xong có deadline đã quá hạn hoặc trong `horizon` ngày tới, gần nhất trước.
-export function deadlineTasks(data, today, horizon = 7) {
-  const limit = shiftDay(today, horizon)
-  return Object.entries(data)
-    .flatMap(([date, list]) => list.filter((t) => !t.done && t.dueDate && t.dueDate <= limit).map((t) => ({ ...t, date })))
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || (a.dueTime || '').localeCompare(b.dueTime || ''))
-}
-
 const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim()
 
 export function topRecurring(tasks, n) {
@@ -134,7 +126,7 @@ export function reportText(type, range, tasks) {
     lines.push('I. Công việc đã hoàn thành')
     for (const [date, list] of groups(done)) {
       lines.push(`- ${shortDate(date)}:`)
-      for (const t of list) lines.push(`  • ${t.name}${t.dueDate ? ` [hạn ${shortDate(t.dueDate)}]` : ''}${t.note ? ` (${t.note})` : ''}`)
+      for (const t of list) lines.push(`  • ${t.name}${t.dueDate ? ` [hạn ${fullDate(t.dueDate)}]` : ''}${t.note ? ` (${t.note})` : ''}`)
     }
     lines.push('')
   }
@@ -142,7 +134,7 @@ export function reportText(type, range, tasks) {
     lines.push('II. Công việc chưa hoàn thành')
     for (const [date, list] of groups(open)) {
       lines.push(`- ${shortDate(date)}:`)
-      for (const t of list) lines.push(`  • ${t.name}${t.dueDate ? ` [hạn ${shortDate(t.dueDate)}]` : ''}${t.note ? ` (${t.note})` : ''}`)
+      for (const t of list) lines.push(`  • ${t.name}${t.dueDate ? ` [hạn ${fullDate(t.dueDate)}]` : ''}${t.note ? ` (${t.note})` : ''}`)
     }
   }
   return lines.join('\n').trim()

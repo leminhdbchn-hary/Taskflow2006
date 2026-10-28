@@ -91,16 +91,20 @@ export function weekdayShort(key) {
 // dd/mm từ khóa YYYY-MM-DD
 export const shortDate = (key) => `${key.slice(8)}/${key.slice(5, 7)}`
 
-const daysBetween = (from, to) => Math.round((new Date(`${to}T00:00:00`) - new Date(`${from}T00:00:00`)) / 86400000)
+export const daysBetween = (from, to) =>
+  Math.round((new Date(`${to}T00:00:00`) - new Date(`${from}T00:00:00`)) / 86400000)
 
-// Trạng thái deadline của một việc (dueDate là tùy chọn; dữ liệu cũ không có trường này).
+// dd/mm/yyyy từ khóa YYYY-MM-DD
+export const fullDate = (key) => `${key.slice(8)}/${key.slice(5, 7)}/${key.slice(0, 4)}`
+
+// Trạng thái deadline của một việc (dueDate là tùy chọn; dữ liệu cũ không có trường này). Luôn hiện đủ ngày/tháng/năm.
 export function deadlineInfo(task, today = todayKey()) {
   if (!task.dueDate) return null
-  const label = `Hạn ${shortDate(task.dueDate)}`
-  if (task.done) return { label, tone: 'done' }
+  const date = fullDate(task.dueDate)
+  if (task.done) return { label: `Hạn ${date}`, tone: 'done' }
   const diff = daysBetween(today, task.dueDate)
-  if (diff < 0) return { label: `Quá hạn ${-diff} ngày`, tone: 'overdue' }
-  if (diff === 0) return { label: 'Hạn hôm nay', tone: 'today' }
-  if (diff <= 2) return { label: `Còn ${diff} ngày`, tone: 'soon' }
-  return { label, tone: 'normal' }
+  if (diff < 0) return { label: `Hạn ${date} · quá ${-diff} ngày`, tone: 'overdue' }
+  if (diff === 0) return { label: `Hạn ${date} · hôm nay`, tone: 'today' }
+  if (diff <= 2) return { label: `Hạn ${date} · còn ${diff} ngày`, tone: 'soon' }
+  return { label: `Hạn ${date}`, tone: 'normal' }
 }

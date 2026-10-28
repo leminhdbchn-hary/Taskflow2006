@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BarChart, Donut, Legend } from '../components/Charts.jsx'
-import { shortDate, todayKey, weekdayShort } from '../lib/tasks.js'
+import { fullDate, shortDate, todayKey, weekdayShort } from '../lib/tasks.js'
 import { PERIODS, buckets, periodLabel, periodRange, reportText, shiftPeriod, summarize, tasksInRange } from '../lib/stats.js'
 
 function TaskGroups({ tasks, empty }) {
@@ -20,7 +20,7 @@ function TaskGroups({ tasks, empty }) {
                 <span className={`dot dot-${t.pri}`} />
                 <span>
                   {t.name}
-                  {t.dueDate && <span className="muted"> · hạn {shortDate(t.dueDate)}</span>}
+                  {t.dueDate && <span className="muted"> · hạn {fullDate(t.dueDate)}</span>}
                   {t.note && <em className="muted"> — {t.note}</em>}
                 </span>
               </li>

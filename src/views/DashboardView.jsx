@@ -1,6 +1,8 @@
 import { BarChart, Donut, Legend, Ring } from '../components/Charts.jsx'
-import { deadlineInfo, shortDate, todayKey } from '../lib/tasks.js'
-import { deadlineTasks, lastDaysBuckets, overdueTasks, periodRange, summarize, tasksInRange, topRecurring } from '../lib/stats.js'
+import RemindersCard from '../components/RemindersCard.jsx'
+import { computeReminders } from '../lib/reminders.js'
+import { fullDate, todayKey } from '../lib/tasks.js'
+import { lastDaysBuckets, overdueTasks, periodRange, summarize, tasksInRange, topRecurring } from '../lib/stats.js'
 
 function Stat({ label, value, sub, tone }) {
   return (
@@ -12,7 +14,7 @@ function Stat({ label, value, sub, tone }) {
   )
 }
 
-export default function DashboardView({ data, onDay }) {
+export default function DashboardView({ data, onDay, reminders }) {
   const today = todayKey()
   const todayStats = summarize(data[today] ?? [])
   const week = summarize(tasksInRange(data, ...Object.values(periodRange('week', today))))
@@ -23,7 +25,7 @@ export default function DashboardView({ data, onDay }) {
   const yearTasks = tasksInRange(data, yearRange.start, yearRange.end)
   const overdue = overdueTasks(data, today)
   const recurring = topRecurring(yearTasks, 5)
-  const deadlines = deadlineTasks(data, today, 7)
+  const alerts = computeReminders(data, undefined, Math.max(7, reminders.settings.lead))
   const hasData = Object.values(data).some((l) => l.length)
 
   if (!hasData) {
@@ -59,28 +61,7 @@ export default function DashboardView({ data, onDay }) {
         <Stat label="Tồn đọng" value={overdue.length} sub={overdue.length ? `Cũ nhất: ${overdue[0].age} ngày` : 'Không có việc tồn'} tone={overdue.length ? 'warn' : 'good'} />
       </div>
 
-      <div className="card">
-        <h3>Deadline cần chú ý</h3>
-        {deadlines.length === 0 ? (
-          <p className="muted">Không có deadline quá hạn hoặc trong 7 ngày tới.</p>
-        ) : (
-          <ul className="rank-list">
-            {deadlines.slice(0, 8).map((t) => {
-              const dl = deadlineInfo(t, today)
-              return (
-                <li key={t.id}>
-                  <button className="link" onClick={() => onDay(t.date)}>
-                    {t.name}
-                  </button>
-                  <span className="muted small">{shortDate(t.dueDate)}</span>
-                  <span className={`chip chip-dl-${dl.tone}`}>{dl.label}</span>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-        {deadlines.length > 8 && <p className="muted small">và {deadlines.length - 8} việc khác…</p>}
-      </div>
+      <RemindersCard items={alerts} onOpenDay={onDay} limit={8} title="Nhắc việc và deadline" />
 
       <div className="grid-2">
         <div className="card">
@@ -108,7 +89,7 @@ export default function DashboardView({ data, onDay }) {
                   <button className="link" onClick={() => onDay(t.date)}>
                     {t.name}
                   </button>
-                  <span className="muted small">{shortDate(t.date)}</span>
+                  <span className="muted small">{fullDate(t.date)}</span>
                   <span className="chip chip-time">{t.age} ngày</span>
                 </li>
               ))}

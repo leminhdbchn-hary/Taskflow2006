@@ -15,7 +15,7 @@ function Icon({ d }) {
   )
 }
 
-export default function Sidebar({ view, onView, onExport, onImport, theme, onTheme, cloud, onSignOut }) {
+export default function Sidebar({ view, onView, onExport, onImport, theme, onTheme, cloud, onSignOut, badges = {} }) {
   const fileInput = useRef(null)
 
   return (
@@ -35,6 +35,11 @@ export default function Sidebar({ view, onView, onExport, onImport, theme, onThe
           >
             <Icon d={item.icon} />
             <span className="label">{item.label}</span>
+            {badges[item.id] > 0 && (
+              <span className="badge" aria-label={`${badges[item.id]} việc cần chú ý`}>
+                {badges[item.id]}
+              </span>
+            )}
           </button>
         ))}
       </nav>

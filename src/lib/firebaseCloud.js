@@ -47,7 +47,8 @@ export function createCloud(config) {
           }),
         onError,
       ),
-    writeDay: (uid, key, tasks) => setDoc(dayRef(uid, key), { tasks }),
+    // Loại bỏ giá trị undefined (Firestore từ chối) trước khi ghi.
+    writeDay: (uid, key, tasks) => setDoc(dayRef(uid, key), { tasks: JSON.parse(JSON.stringify(tasks)) }),
     deleteDay: (uid, key) => deleteDoc(dayRef(uid, key)),
   }
 }
