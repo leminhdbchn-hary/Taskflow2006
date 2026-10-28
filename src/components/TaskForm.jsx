@@ -5,15 +5,17 @@ export default function TaskForm({ onAdd }) {
   const [name, setName] = useState('')
   const [pri, setPri] = useState('med')
   const [dueTime, setDueTime] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const nameInput = useRef(null)
 
   const submit = (e) => {
     e.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) return
-    onAdd({ name: trimmed, pri, dueTime })
+    onAdd({ name: trimmed, pri, dueTime, dueDate })
     setName('')
     setDueTime('')
+    setDueDate('')
     nameInput.current.focus()
   }
 
@@ -34,6 +36,7 @@ export default function TaskForm({ onAdd }) {
           </option>
         ))}
       </select>
+      <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} aria-label="Ngày deadline" title="Ngày deadline (tùy chọn)" />
       <input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} aria-label="Giờ hạn" />
       <button type="submit" className="primary" disabled={!name.trim()}>
         Thêm

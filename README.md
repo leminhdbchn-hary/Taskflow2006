@@ -4,8 +4,8 @@ Taskflow - quản lý công việc theo ngày. Xây dựng bằng React + Vite.
 
 ## Tính năng
 
-- **Hôm nay**: công việc theo ngày (ưu tiên, giờ hạn, ghi chú), dải tuần, sửa/xóa (có hoàn tác), chuyển việc tồn đọng sang ngày hiện tại
-- **Dashboard**: tiến độ hôm nay/tuần/tháng, biểu đồ 14 ngày, cơ cấu ưu tiên, việc tồn đọng lâu nhất, việc lặp lại nhiều nhất
+- **Hôm nay**: công việc theo ngày (ưu tiên, ngày deadline, giờ hạn, ghi chú; cảnh báo quá hạn / sắp đến hạn), dải tuần, sửa/xóa (có hoàn tác), chuyển việc tồn đọng sang ngày hiện tại
+- **Dashboard**: tiến độ hôm nay/tuần/tháng, biểu đồ 14 ngày, cơ cấu ưu tiên, deadline cần chú ý, việc tồn đọng lâu nhất, việc lặp lại nhiều nhất
 - **Báo cáo** theo tuần, tháng, năm: thống kê, biểu đồ, danh sách việc đã/chưa hoàn thành, sao chép báo cáo dạng văn bản, in / lưu PDF
 - Giao diện sáng/tối, tối ưu cho máy tính, có bản thu gọn cho điện thoại
 - Minh họa 3D (banner, trạng thái trống, hoàn thành) trong `src/assets/*.webp`, nạp qua `import` nên tự theo `base` của Vite (`/Taskflow2006/`)
