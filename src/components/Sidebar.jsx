@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import Account from './Account.jsx'
 
 const NAV = [
   { id: 'today', label: 'Hôm nay', icon: 'M8 2v3M16 2v3M3.5 9h17M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' },
@@ -14,7 +15,7 @@ function Icon({ d }) {
   )
 }
 
-export default function Sidebar({ view, onView, onExport, onImport, theme, onTheme }) {
+export default function Sidebar({ view, onView, onExport, onImport, theme, onTheme, cloud, onSignOut }) {
   const fileInput = useRef(null)
 
   return (
@@ -39,6 +40,7 @@ export default function Sidebar({ view, onView, onExport, onImport, theme, onThe
       </nav>
 
       <div className="sidebar-foot">
+        <Account cloud={cloud} onSignOut={onSignOut} />
         <p className="foot-title">Dữ liệu</p>
         <button className="nav-item" onClick={onExport} title="Xuất JSON" aria-label="Xuất JSON">
           <Icon d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />

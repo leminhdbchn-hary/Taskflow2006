@@ -10,7 +10,9 @@ Taskflow - quản lý công việc theo ngày. Xây dựng bằng React + Vite.
 - Giao diện sáng/tối, tối ưu cho máy tính, có bản thu gọn cho điện thoại
 - Minh họa 3D (banner, trạng thái trống, hoàn thành) trong `src/assets/*.webp`, nạp qua `import` nên tự theo `base` của Vite (`/Taskflow2006/`)
 - Xuất / nhập dữ liệu JSON (`taskflow-backup-YYYY-MM-DD.json`)
-- Dữ liệu chỉ lưu trong `localStorage` của trình duyệt, không nằm trong repo
+- Đăng nhập Google (Firebase) để xem cùng dữ liệu trên nhiều thiết bị, tự đồng bộ và dùng được khi mất mạng; chưa đăng nhập thì dữ liệu chỉ lưu trong `localStorage` của trình duyệt. Hướng dẫn cài đặt: [docs/FIREBASE-SETUP.md](docs/FIREBASE-SETUP.md)
+- Icon ứng dụng và manifest để thêm vào màn hình chính điện thoại
+- Dữ liệu cá nhân không nằm trong repo
 
 ## Bắt đầu
 
@@ -19,6 +21,7 @@ npm install
 npm run dev      # chạy môi trường phát triển
 npm run build    # build production
 npm run lint     # kiểm tra mã nguồn
+npm test         # kiểm thử logic đồng bộ
 ```
 
 ## Cấu trúc
@@ -26,6 +29,7 @@ npm run lint     # kiểm tra mã nguồn
 - `src/App.jsx` – state chính, điều hướng, xuất/nhập
 - `src/views/` – `TodayView`, `DashboardView`, `ReportView`
 - `src/components/` – `Sidebar`, `TaskForm`, `TaskList`, `Charts`
+- `src/lib/useCloud.js`, `firebaseCloud.js`, `sync.js` – đăng nhập và đồng bộ (Firestore)
 - `src/lib/tasks.js` – lưu trữ, sắp xếp, tiện ích ngày; `src/lib/stats.js` – thống kê và báo cáo
 
 ## Triển khai
