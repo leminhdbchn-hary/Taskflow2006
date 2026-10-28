@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import emptyUrl from '../assets/taskflow-empty.webp'
 import { PRIORITIES, shortDate } from '../lib/tasks.js'
 
 function TaskItem({ task, onToggle, onUpdate, onRemove }) {
@@ -82,9 +83,12 @@ function TaskItem({ task, onToggle, onUpdate, onRemove }) {
 export default function TaskList({ tasks, ...handlers }) {
   if (tasks.length === 0) {
     return (
-      <div className="empty card">
-        <strong>Chưa có công việc nào</strong>
-        <span>Nhập tên việc ở ô phía trên và nhấn Enter để bắt đầu ngày mới.</span>
+      <div className="state-card card is-empty">
+        <img src={emptyUrl} alt="" width="160" height="133" />
+        <div>
+          <strong>Bắt đầu ngày mới bằng một việc nhỏ.</strong>
+          <span>Nhập tên việc ở ô phía trên rồi nhấn Enter.</span>
+        </div>
       </div>
     )
   }

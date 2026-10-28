@@ -1,6 +1,8 @@
+import Hero from '../components/Hero.jsx'
 import TaskForm from '../components/TaskForm.jsx'
 import TaskList from '../components/TaskList.jsx'
 import { Ring } from '../components/Charts.jsx'
+import successUrl from '../assets/taskflow-success.webp'
 import { formatDay, shiftDay, shortDate, sortTasks, todayKey, weekdayShort } from '../lib/tasks.js'
 import { overdueTasks, periodRange, summarize } from '../lib/stats.js'
 
@@ -11,14 +13,13 @@ export default function TodayView({ data, day, onDay, actions }) {
   const week = periodRange('week', day)
   const days = Array.from({ length: 7 }, (_, i) => shiftDay(week.start, i))
   const isToday = day === todayKey()
+  const allDone = stats.total > 0 && stats.open === 0
 
   return (
     <div className="page">
-      <header className="page-head">
-        <div>
-          <h1>{isToday ? 'Hôm nay' : 'Công việc trong ngày'}</h1>
-          <p className="muted cap">{formatDay(day)}</p>
-        </div>
+      <Hero dateLabel={formatDay(day)} stats={stats} />
+
+      <div className="day-bar">
         <div className="toolbar">
           <button className="ghost" onClick={() => onDay(shiftDay(day, -1))} aria-label="Hôm trước">
             ‹
@@ -31,7 +32,7 @@ export default function TodayView({ data, day, onDay, actions }) {
             Hôm nay
           </button>
         </div>
-      </header>
+      </div>
 
       <div className="week-strip card" role="tablist" aria-label="Các ngày trong tuần">
         {days.map((k) => {
@@ -49,6 +50,15 @@ export default function TodayView({ data, day, onDay, actions }) {
       <div className="two-col">
         <section className="col-main">
           <TaskForm onAdd={actions.add} />
+          {allDone && (
+            <div className="state-card card success" role="status">
+              <img src={successUrl} alt="" width="140" height="124" />
+              <div>
+                <strong>Xong việc hôm nay. Bạn làm tốt lắm!</strong>
+                <span>Tất cả {stats.total} việc trong ngày đã hoàn thành.</span>
+              </div>
+            </div>
+          )}
           <TaskList tasks={sortTasks(tasks)} onToggle={actions.toggle} onUpdate={actions.update} onRemove={actions.remove} />
         </section>
 
@@ -71,7 +81,7 @@ export default function TodayView({ data, day, onDay, actions }) {
           <div className="card">
             <h3>Tồn đọng từ ngày trước</h3>
             {overdue.length === 0 ? (
-              <p className="muted">Không có việc tồn đọng. 🎉</p>
+              <p className="muted">Không có việc tồn đọng.</p>
             ) : (
               <>
                 <ul className="overdue-list">

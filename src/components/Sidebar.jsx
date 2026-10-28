@@ -33,25 +33,25 @@ export default function Sidebar({ view, onView, onExport, onImport, theme, onThe
             onClick={() => onView(item.id)}
           >
             <Icon d={item.icon} />
-            {item.label}
+            <span className="label">{item.label}</span>
           </button>
         ))}
       </nav>
 
       <div className="sidebar-foot">
         <p className="foot-title">Dữ liệu</p>
-        <button className="nav-item" onClick={onExport}>
+        <button className="nav-item" onClick={onExport} title="Xuất JSON" aria-label="Xuất JSON">
           <Icon d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />
-          Xuất JSON
+          <span className="label">Xuất JSON</span>
         </button>
-        <button className="nav-item" onClick={() => fileInput.current.click()}>
+        <button className="nav-item" onClick={() => fileInput.current.click()} title="Nhập JSON" aria-label="Nhập JSON">
           <Icon d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14" />
-          Nhập JSON
+          <span className="label">Nhập JSON</span>
         </button>
         <input ref={fileInput} type="file" accept="application/json" hidden onChange={onImport} />
-        <button className="nav-item" onClick={onTheme}>
+        <button className="nav-item" onClick={onTheme} title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">
           <Icon d={theme === 'dark' ? 'M12 3v2m0 14v2M5 12H3m18 0h-2M6.3 6.3 4.9 4.9m14.2 14.2-1.4-1.4M6.3 17.7l-1.4 1.4m14.2-14.2-1.4 1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z' : 'M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z'} />
-          {theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}
+          <span className="label">{theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}</span>
         </button>
       </div>
     </aside>
