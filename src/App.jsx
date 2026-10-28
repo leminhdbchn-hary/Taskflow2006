@@ -1,52 +1,82 @@
-import { useEffect, useRef, useState } from 'react'
-import DateBar from './components/DateBar.jsx'
-import TaskForm from './components/TaskForm.jsx'
-import TaskList from './components/TaskList.jsx'
-import {
-  exportData,
-  findOverdue,
-  isValidBackup,
-  loadData,
-  newTask,
-  saveData,
-  sortTasks,
-  toKey,
-} from './lib/tasks.js'
+import { useEffect, useState } from 'react'
+import Sidebar from './components/Sidebar.jsx'
+import TodayView from './views/TodayView.jsx'
+import DashboardView from './views/DashboardView.jsx'
+import ReportView from './views/ReportView.jsx'
+import { exportData, isValidBackup, loadData, newTask, saveData, todayKey } from './lib/tasks.js'
+import { overdueTasks } from './lib/stats.js'
+
+const VIEWS = ['today', 'dashboard', 'report']
+const readView = () => {
+  const id = location.hash.replace('#/', '')
+  return VIEWS.includes(id) ? id : 'today'
+}
+const readTheme = () => {
+  try {
+    return localStorage.getItem('taskflow.theme')
+  } catch {
+    return null
+  }
+}
 
 export default function App() {
   const [data, setData] = useState(loadData)
-  const [day, setDay] = useState(() => toKey(new Date()))
-  const fileInput = useRef(null)
+  const [day, setDay] = useState(todayKey)
+  const [view, setView] = useState(readView)
+  const [theme, setTheme] = useState(() => readTheme() ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+  const [toast, setToast] = useState(null)
 
+  useEffect(() => saveData(data), [data])
   useEffect(() => {
-    saveData(data)
-  }, [data])
+    document.documentElement.dataset.theme = theme
+    try {
+      localStorage.setItem('taskflow.theme', theme)
+    } catch {
+      // bỏ qua nếu trình duyệt chặn lưu trữ
+    }
+  }, [theme])
+  useEffect(() => {
+    const onHash = () => setView(readView())
+    addEventListener('hashchange', onHash)
+    return () => removeEventListener('hashchange', onHash)
+  }, [])
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 6000)
+    return () => clearTimeout(timer)
+  }, [toast])
 
-  const tasks = data[day] ?? []
-  const overdue = findOverdue(data, day)
-  const doneCount = tasks.filter((t) => t.done).length
+  const goView = (id) => {
+    location.hash = `#/${id}`
+    setView(id)
+  }
+  const openDay = (key) => {
+    setDay(key)
+    goView('today')
+  }
 
   const updateDay = (key, fn) => setData((prev) => ({ ...prev, [key]: fn(prev[key] ?? []) }))
 
-  const addTask = (fields) => updateDay(day, (list) => [...list, newTask(fields)])
-  const updateTask = (id, patch) =>
-    updateDay(day, (list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t)))
-  const toggleTask = (task) =>
-    updateTask(task.id, { done: !task.done, status: task.done ? 'todo' : 'done' })
-  const removeTask = (id) => updateDay(day, (list) => list.filter((t) => t.id !== id))
-
-  // Chuyển các việc chưa xong từ ngày cũ sang ngày đang xem.
-  const carryOver = () =>
-    setData((prev) => {
-      const next = { ...prev }
-      const moved = []
-      for (const { from, ...task } of overdue) {
-        next[from] = next[from].filter((t) => t.id !== task.id)
-        moved.push({ ...task, carriedFrom: from })
-      }
-      next[day] = [...(next[day] ?? []), ...moved]
-      return next
-    })
+  const actions = {
+    add: (fields) => updateDay(day, (list) => [...list, newTask(fields)]),
+    update: (id, patch) => updateDay(day, (list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t))),
+    toggle: (task) => actions.update(task.id, { done: !task.done, status: task.done ? 'todo' : 'done' }),
+    remove: (task) => {
+      updateDay(day, (list) => list.filter((t) => t.id !== task.id))
+      setToast({ text: `Đã xóa “${task.name}”`, undo: () => updateDay(day, (list) => [...list, task]) })
+    },
+    // Chuyển các việc chưa xong từ ngày cũ sang ngày đang xem.
+    carryOver: () =>
+      setData((prev) => {
+        const moved = overdueTasks(prev, day)
+        const next = { ...prev }
+        for (const { date, age: _age, ...task } of moved) {
+          next[date] = next[date].filter((t) => t.id !== task.id)
+          next[day] = [...(next[day] ?? []), { ...task, carriedFrom: task.carriedFrom ?? date }]
+        }
+        return next
+      }),
+  }
 
   const importFile = async (e) => {
     const file = e.target.files[0]
@@ -62,39 +92,33 @@ export default function App() {
   }
 
   return (
-    <main className="app">
-      <header className="top">
-        <h1>Taskflow</h1>
-        <div className="actions">
-          <button className="ghost" onClick={() => exportData(data)}>
-            Xuất JSON
+    <div className="shell">
+      <Sidebar
+        view={view}
+        onView={goView}
+        onExport={() => exportData(data)}
+        onImport={importFile}
+        theme={theme}
+        onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      />
+      <main className="content">
+        {view === 'today' && <TodayView data={data} day={day} onDay={setDay} actions={actions} />}
+        {view === 'dashboard' && <DashboardView data={data} onDay={openDay} />}
+        {view === 'report' && <ReportView data={data} />}
+      </main>
+      {toast && (
+        <div className="toast" role="status">
+          {toast.text}
+          <button
+            onClick={() => {
+              toast.undo()
+              setToast(null)
+            }}
+          >
+            Hoàn tác
           </button>
-          <button className="ghost" onClick={() => fileInput.current.click()}>
-            Nhập JSON
-          </button>
-          <input ref={fileInput} type="file" accept="application/json" hidden onChange={importFile} />
-        </div>
-      </header>
-
-      <DateBar day={day} onChange={setDay} />
-      <p className="summary">
-        {doneCount}/{tasks.length} việc hoàn thành
-      </p>
-
-      {overdue.length > 0 && (
-        <div className="overdue">
-          <span>{overdue.length} việc chưa xong từ các ngày trước.</span>
-          <button onClick={carryOver}>Chuyển sang ngày này</button>
         </div>
       )}
-
-      <TaskForm onAdd={addTask} />
-      <TaskList
-        tasks={sortTasks(tasks)}
-        onToggle={toggleTask}
-        onUpdate={updateTask}
-        onRemove={removeTask}
-      />
-    </main>
+    </div>
   )
 }
