@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import emptyUrl from '../assets/taskflow-empty.webp'
-import { PRIORITIES, shortDate } from '../lib/tasks.js'
+import { PRIORITIES, deadlineInfo, shortDate } from '../lib/tasks.js'
 
 function TaskItem({ task, onToggle, onUpdate, onRemove }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(task)
+  const deadline = deadlineInfo(task)
 
   const save = () => {
     const name = draft.name.trim()
-    if (name) onUpdate(task.id, { name, pri: draft.pri, dueTime: draft.dueTime })
+    if (name) onUpdate(task.id, { name, pri: draft.pri, dueTime: draft.dueTime, dueDate: draft.dueDate ?? '' })
     setEditing(false)
   }
 
@@ -33,6 +34,7 @@ function TaskItem({ task, onToggle, onUpdate, onRemove }) {
             </option>
           ))}
         </select>
+        <input type="date" value={draft.dueDate ?? ''} onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })} aria-label="Ngày deadline" />
         <input type="time" value={draft.dueTime} onChange={(e) => setDraft({ ...draft, dueTime: e.target.value })} aria-label="Giờ hạn" />
         <button className="primary" onClick={save}>
           Lưu
@@ -57,6 +59,11 @@ function TaskItem({ task, onToggle, onUpdate, onRemove }) {
         <div className="task-title">
           <span className="name">{task.name}</span>
           <span className={`chip chip-${task.pri}`}>{PRIORITIES[task.pri]}</span>
+          {deadline && (
+            <span className={`chip chip-dl-${deadline.tone}`} title={`Deadline ${task.dueDate.split('-').reverse().join('/')}`}>
+              📅 {deadline.label}
+            </span>
+          )}
           {task.dueTime && <span className="chip chip-time">⏰ {task.dueTime}</span>}
           {task.carriedFrom && <span className="chip chip-carried">↪ từ {shortDate(task.carriedFrom)}</span>}
         </div>

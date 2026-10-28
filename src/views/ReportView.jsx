@@ -20,6 +20,7 @@ function TaskGroups({ tasks, empty }) {
                 <span className={`dot dot-${t.pri}`} />
                 <span>
                   {t.name}
+                  {t.dueDate && <span className="muted"> · hạn {shortDate(t.dueDate)}</span>}
                   {t.note && <em className="muted"> — {t.note}</em>}
                 </span>
               </li>

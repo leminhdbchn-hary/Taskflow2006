@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
 import TodayView from './views/TodayView.jsx'
 import DashboardView from './views/DashboardView.jsx'
 import ReportView from './views/ReportView.jsx'
 import { exportData, isValidBackup, loadData, newTask, saveData, todayKey } from './lib/tasks.js'
 import { overdueTasks } from './lib/stats.js'
+import { useCloud } from './lib/useCloud.js'
 
 const VIEWS = ['today', 'dashboard', 'report']
 const readView = () => {
@@ -25,6 +26,8 @@ export default function App() {
   const [view, setView] = useState(readView)
   const [theme, setTheme] = useState(() => readTheme() ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
   const [toast, setToast] = useState(null)
+  const notify = useCallback((text) => setToast({ text }), [])
+  const cloud = useCloud({ data, setData, notify })
 
   useEffect(() => saveData(data), [data])
   useEffect(() => {
@@ -78,6 +81,11 @@ export default function App() {
       }),
   }
 
+  const signOut = async () => {
+    const warn = cloud.pending > 0 ? ' Còn thay đổi chưa đồng bộ xong, hãy chờ trạng thái “Đã đồng bộ” trước.' : ''
+    if (confirm(`Đăng xuất sẽ xóa dữ liệu khỏi máy này (dữ liệu vẫn an toàn trên tài khoản).${warn} Tiếp tục?`)) await cloud.signOut()
+  }
+
   const importFile = async (e) => {
     const file = e.target.files[0]
     e.target.value = ''
@@ -100,6 +108,8 @@ export default function App() {
         onImport={importFile}
         theme={theme}
         onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        cloud={cloud}
+        onSignOut={signOut}
       />
       <main className="content">
         {view === 'today' && <TodayView data={data} day={day} onDay={setDay} actions={actions} />}
@@ -109,14 +119,18 @@ export default function App() {
       {toast && (
         <div className="toast" role="status">
           {toast.text}
-          <button
-            onClick={() => {
-              toast.undo()
-              setToast(null)
-            }}
-          >
-            Hoàn tác
-          </button>
+          {toast.undo ? (
+            <button
+              onClick={() => {
+                toast.undo()
+                setToast(null)
+              }}
+            >
+              Hoàn tác
+            </button>
+          ) : (
+            <button onClick={() => setToast(null)}>Đóng</button>
+          )}
         </div>
       )}
     </div>

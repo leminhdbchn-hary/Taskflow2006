@@ -49,12 +49,17 @@ export function sortTasks(tasks) {
     (a, b) =>
       Number(a.done) - Number(b.done) ||
       PRI_ORDER[a.pri] - PRI_ORDER[b.pri] ||
+      (a.dueDate || '9999-99-99').localeCompare(b.dueDate || '9999-99-99') ||
       (a.dueTime || '99:99').localeCompare(b.dueTime || '99:99'),
   )
 }
 
-export function newTask({ name, pri = 'med', dueTime = '', note = '' }) {
-  return { id: Date.now(), name, pri, done: false, status: 'todo', dueTime, note, carriedFrom: null }
+// Id dựa trên thời gian, đảm bảo luôn tăng dần để hai việc tạo cùng mili-giây không trùng nhau.
+let lastId = 0
+
+export function newTask({ name, pri = 'med', dueTime = '', dueDate = '', note = '' }) {
+  lastId = Math.max(Date.now(), lastId + 1)
+  return { id: lastId, name, pri, done: false, status: 'todo', dueTime, dueDate, note, carriedFrom: null }
 }
 
 export function exportData(data) {
@@ -85,3 +90,17 @@ export function weekdayShort(key) {
 
 // dd/mm từ khóa YYYY-MM-DD
 export const shortDate = (key) => `${key.slice(8)}/${key.slice(5, 7)}`
+
+const daysBetween = (from, to) => Math.round((new Date(`${to}T00:00:00`) - new Date(`${from}T00:00:00`)) / 86400000)
+
+// Trạng thái deadline của một việc (dueDate là tùy chọn; dữ liệu cũ không có trường này).
+export function deadlineInfo(task, today = todayKey()) {
+  if (!task.dueDate) return null
+  const label = `Hạn ${shortDate(task.dueDate)}`
+  if (task.done) return { label, tone: 'done' }
+  const diff = daysBetween(today, task.dueDate)
+  if (diff < 0) return { label: `Quá hạn ${-diff} ngày`, tone: 'overdue' }
+  if (diff === 0) return { label: 'Hạn hôm nay', tone: 'today' }
+  if (diff <= 2) return { label: `Còn ${diff} ngày`, tone: 'soon' }
+  return { label, tone: 'normal' }
+}

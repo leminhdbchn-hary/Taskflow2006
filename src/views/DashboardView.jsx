@@ -1,6 +1,6 @@
 import { BarChart, Donut, Legend, Ring } from '../components/Charts.jsx'
-import { shortDate, todayKey } from '../lib/tasks.js'
-import { lastDaysBuckets, overdueTasks, periodRange, summarize, tasksInRange, topRecurring } from '../lib/stats.js'
+import { deadlineInfo, shortDate, todayKey } from '../lib/tasks.js'
+import { deadlineTasks, lastDaysBuckets, overdueTasks, periodRange, summarize, tasksInRange, topRecurring } from '../lib/stats.js'
 
 function Stat({ label, value, sub, tone }) {
   return (
@@ -23,6 +23,7 @@ export default function DashboardView({ data, onDay }) {
   const yearTasks = tasksInRange(data, yearRange.start, yearRange.end)
   const overdue = overdueTasks(data, today)
   const recurring = topRecurring(yearTasks, 5)
+  const deadlines = deadlineTasks(data, today, 7)
   const hasData = Object.values(data).some((l) => l.length)
 
   if (!hasData) {
@@ -56,6 +57,29 @@ export default function DashboardView({ data, onDay }) {
         <Stat label="Tuần này" value={`${week.rate}%`} sub={`${week.done}/${week.total} việc hoàn thành`} />
         <Stat label="Tháng này" value={`${month.rate}%`} sub={`${month.done}/${month.total} việc hoàn thành`} />
         <Stat label="Tồn đọng" value={overdue.length} sub={overdue.length ? `Cũ nhất: ${overdue[0].age} ngày` : 'Không có việc tồn'} tone={overdue.length ? 'warn' : 'good'} />
+      </div>
+
+      <div className="card">
+        <h3>Deadline cần chú ý</h3>
+        {deadlines.length === 0 ? (
+          <p className="muted">Không có deadline quá hạn hoặc trong 7 ngày tới.</p>
+        ) : (
+          <ul className="rank-list">
+            {deadlines.slice(0, 8).map((t) => {
+              const dl = deadlineInfo(t, today)
+              return (
+                <li key={t.id}>
+                  <button className="link" onClick={() => onDay(t.date)}>
+                    {t.name}
+                  </button>
+                  <span className="muted small">{shortDate(t.dueDate)}</span>
+                  <span className={`chip chip-dl-${dl.tone}`}>{dl.label}</span>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        {deadlines.length > 8 && <p className="muted small">và {deadlines.length - 8} việc khác…</p>}
       </div>
 
       <div className="grid-2">
